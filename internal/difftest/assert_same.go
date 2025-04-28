@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 )
 
-func AssertSame[T any](t *testing.T, want, got T) {
+func AssertSame[T any](t *testing.T, msg string, want, got T) {
 	t.Helper()
 	d := diff(want, got)
 	if d != "" {
-		t.Error("mismatch (-want +got)\n" + d)
+		t.Error(msg + " (-want +got)\n" + d)
 	}
 }
 
@@ -18,6 +19,8 @@ func diff(a, b any) string {
 	switch x := a.(type) {
 	case string:
 		return diffString(x, b.(string))
+	case time.Time:
+		return diffTime(x, b.(time.Time))
 	case http.Header:
 		if equalMaps(x, b.(http.Header)) {
 			return ""
@@ -33,6 +36,13 @@ func diffString(a, b string) string {
 		return fmt.Sprintf("- %s\n+ %s", a, b)
 	}
 	return ""
+}
+
+func diffTime(a, b time.Time) string {
+	if a.Equal(b) {
+		return ""
+	}
+	return fmt.Sprintf("- %s\n+ %s", a.Format(time.RFC3339Nano), b.Format(time.RFC3339Nano))
 }
 
 func equalMaps(m1, m2 map[string][]string) bool {

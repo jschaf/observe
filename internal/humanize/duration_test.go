@@ -31,7 +31,7 @@ func TestDuration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%d == %s", tt.d, tt.want), func(t *testing.T) {
 			got := Duration(tt.d)
-			difftest.AssertSame(t, tt.want, got)
+			difftest.AssertSame(t, "Duration mismatch", tt.want, got)
 		})
 	}
 }

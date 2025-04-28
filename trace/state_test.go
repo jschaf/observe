@@ -248,7 +248,7 @@ func TestParseState(t *testing.T) {
 
 			// String
 			gotStr := got.String()
-			difftest.AssertSame(t, tt.want, gotStr)
+			difftest.AssertSame(t, "State.String() mismatch", tt.want, gotStr)
 
 			// Members
 			gotMembers := ""
@@ -258,7 +258,7 @@ func TestParseState(t *testing.T) {
 				}
 				gotMembers += k + "=" + v
 			}
-			difftest.AssertSame(t, tt.want, gotMembers)
+			difftest.AssertSame(t, "State.Members() mismatch", tt.want, gotMembers)
 
 			// JSON
 			wantJSON, err := json.Marshal(tt.want)
@@ -269,7 +269,7 @@ func TestParseState(t *testing.T) {
 			if err != nil {
 				t.Errorf("marshal trace state json: %v", err)
 			}
-			difftest.AssertSame(t, string(wantJSON), string(gotJSON))
+			difftest.AssertSame(t, "State JSON mismatch", string(wantJSON), string(gotJSON))
 		})
 	}
 }

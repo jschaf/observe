@@ -34,7 +34,7 @@ func TestBytes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.want, func(t *testing.T) {
 			got := Bytes(tt.n)
-			difftest.AssertSame(t, tt.want, got)
+			difftest.AssertSame(t, "Bytes mismatch", tt.want, got)
 		})
 	}
 }

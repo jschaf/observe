@@ -116,7 +116,7 @@ func TestUint64Bytes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := hextbl.Uint64Bytes(tt.u)
 			gotStr := string(got[:])
-			difftest.AssertSame(t, tt.want, gotStr)
+			difftest.AssertSame(t, "Uint64Bytes mismatch", tt.want, gotStr)
 		})
 	}
 }

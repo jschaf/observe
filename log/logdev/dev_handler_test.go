@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jschaf/observe/internal/difftest"
-	"github.com/jschaf/observe/internal/require"
 	"github.com/jschaf/observe/internal/tty"
 )
 
@@ -35,11 +34,13 @@ func TestDevHandler_Handle(t *testing.T) {
 		Time:    time.Date(2024, time.January, 1, 12, 0, 0, 0, time.UTC),
 		Message: "msg",
 	})
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("handle record: %v", err)
+	}
 	got := buf.String()
 
 	want := fmt.Sprintf("12:00:00.000\t%s\tmsg\n", tty.Blue.Add("info"))
-	difftest.AssertSame(t, want, got)
+	difftest.AssertSame(t, "DevHandler mismatch", want, got)
 }
 
 func BenchmarkDevHandler_Handle(b *testing.B) {

@@ -120,7 +120,7 @@ func TestHTTPHeader_ExtractContext(t *testing.T) {
 
 			gotHdr := http.Header{}
 			propagate.HTTPHeader(gotHdr).InjectContext(got)
-			difftest.AssertSame(t, tt.want, gotHdr)
+			difftest.AssertSame(t, "InjectHeader mismatch", tt.want, gotHdr)
 		})
 	}
 }
