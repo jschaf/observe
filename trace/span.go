@@ -45,14 +45,14 @@ func (s *Span) EndTime() time.Time {
 }
 
 type spanEndConfig struct {
-	endTime epoch.Nanos
+	end epoch.Nanos
 }
 
 type SpanEndOption func(*spanEndConfig)
 
 // WithEndTime sets the end time of the span.
 func WithEndTime(t time.Time) SpanEndOption {
-	return func(cfg *spanEndConfig) { cfg.endTime = epoch.NewNanos(t) }
+	return func(cfg *spanEndConfig) { cfg.end = epoch.NewNanos(t) }
 }
 
 // End signals the span has ended.
@@ -65,12 +65,12 @@ func (s *Span) End(opts ...SpanEndOption) {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
-	if cfg.endTime == 0 {
-		cfg.endTime = epoch.NanosNow()
+	if cfg.end == 0 {
+		cfg.end = epoch.Now()
 	}
 
 	// The first call sets the end time. Ignore all later calls.
-	if !(&s.end).SwapIfZero(cfg.endTime) {
+	if !(&s.end).SwapIfZero(cfg.end) {
 		return
 	}
 }

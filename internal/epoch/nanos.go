@@ -19,9 +19,6 @@ func NewNanos(t time.Time) Nanos {
 	return Nanos(t.UnixNano())
 }
 
-// NanosNow returns the current time in nanoseconds since the epoch.
-func NanosNow() Nanos { return Nanos(time.Now().UnixNano()) }
-
 // ToTime converts the Nanos to a time.Time. If the value is zero, it
 // returns the zero-value of time.Time.
 //

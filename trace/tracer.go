@@ -10,13 +10,13 @@ import (
 type Tracer struct{}
 
 type startConfig struct {
-	startTime epoch.Nanos
+	start epoch.Nanos
 }
 
 type SpanStartOption func(*startConfig)
 
 func WithStartTime(t time.Time) SpanStartOption {
-	return func(cfg *startConfig) { cfg.startTime = epoch.NewNanos(t) }
+	return func(cfg *startConfig) { cfg.start = epoch.NewNanos(t) }
 }
 
 // Start starts a Span and returns a new context containing the Span.
@@ -25,14 +25,14 @@ func (t *Tracer) Start(ctx context.Context, name string, opts ...SpanStartOption
 	for _, opt := range opts {
 		opt(&cfg)
 	}
-	if cfg.startTime == 0 {
-		cfg.startTime = epoch.NanosNow()
+	if cfg.start == 0 {
+		cfg.start = epoch.Now()
 	}
 
 	span := &Span{
 		name:   name,
 		tracer: t,
-		start:  cfg.startTime,
+		start:  cfg.start,
 	}
 
 	return ctx, span
