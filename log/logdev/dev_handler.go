@@ -176,6 +176,8 @@ func appendValue(buf *Buffer, v slog.Value) {
 		default:
 			_, _ = fmt.Fprint(buf, a)
 		}
+	case slog.KindGroup, slog.KindLogValuer:
+		panic(fmt.Sprintf("unsupported kind: %s", v.Kind()))
 	default:
 		panic(fmt.Sprintf("bad kind: %s", v.Kind()))
 	}

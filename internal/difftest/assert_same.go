@@ -15,14 +15,18 @@ func AssertSame[T any](t *testing.T, msg string, want, got T) {
 	}
 }
 
+//golint:ignore:asciicheck
 func diff(a, b any) string {
 	switch x := a.(type) {
 	case string:
-		return diffString(x, b.(string))
+		y, _ := b.(string)
+		return diffString(x, y)
 	case time.Time:
-		return diffTime(x, b.(time.Time))
+		y, _ := b.(time.Time)
+		return diffTime(x, y)
 	case http.Header:
-		if equalMaps(x, b.(http.Header)) {
+		y, _ := b.(http.Header)
+		if equalMaps(x, y) {
 			return ""
 		}
 		return fmt.Sprintf("- %v\n+ %v", a, b)

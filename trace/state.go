@@ -68,29 +68,37 @@ func ParseState(ts string) (State, error) {
 
 	// Check for dupe keys. We only check duplicated lengths.
 	if dupeLenBits.hasAny() {
-		// Note: we're checking for duplicates in the hash of the key, not the key
-		// itself. We may have false positives, but it should be vanishingly rare.
-		var hashes = [32]keyHash{}
-		idx := 0
-		for pos := range splitMembers(ts) {
-			if pos.isEmpty() {
-				continue
-			}
-			if !dupeLenBits.hasBit(pos.keyLen()) {
-				continue
-			}
-			hashes[idx] = pos.hashKey(ts)
-			idx++
-		}
-		slices.Sort(hashes[:idx]) // sorting 32 entries is 2x faster than a map
-		for i := 1; i < idx; i++ {
-			if hashes[i] == hashes[i-1] {
-				return State{}, fmt.Errorf("duplicate key")
-			}
+		err := checkDupes(ts, dupeLenBits)
+		if err != nil {
+			return State{}, err
 		}
 	}
 
 	return State{s: ts, isClean: isClean}, nil
+}
+
+func checkDupes(ts string, dupeLenBits *bitset) error {
+	// Note: we're checking for duplicates in the hash of the key, not the key
+	// itself. We may have false positives, but it should be vanishingly rare.
+	hashes := [32]keyHash{}
+	idx := 0
+	for pos := range splitMembers(ts) {
+		if pos.isEmpty() {
+			continue
+		}
+		if !dupeLenBits.hasBit(pos.keyLen()) {
+			continue
+		}
+		hashes[idx] = pos.hashKey(ts)
+		idx++
+	}
+	slices.Sort(hashes[:idx]) // sorting 32 entries is 2x faster than a map
+	for i := 1; i < idx; i++ {
+		if hashes[i] == hashes[i-1] {
+			return fmt.Errorf("duplicate key")
+		}
+	}
+	return nil
 }
 
 // Members iterate over each key-value list-member in the tracestate string.
@@ -153,7 +161,7 @@ type memberPos struct {
 func (p memberPos) isEmpty() bool                 { return p == memberPos{} }
 func (p memberPos) isValid() bool                 { return p.keyLo < p.keyHi && p.valLo < p.valHi }
 func (p memberPos) startsAt(offs int) bool        { return p.keyLo == offs }
-func (p memberPos) keyLen() uint64                { return uint64(p.keyHi - p.keyLo) }
+func (p memberPos) keyLen() uint64                { return uint64(p.keyHi - p.keyLo) } //nolint:gosec
 func (p memberPos) last() int                     { return p.valHi }
 func (p memberPos) memberString(ts string) string { return ts[p.keyLo:p.valHi] }
 func (p memberPos) keyString(ts string) string    { return ts[p.keyLo:p.keyHi] }
@@ -269,7 +277,6 @@ func checkKeyRest(ts string, lo, hi int) bool {
 		}
 	}
 	return true
-
 }
 
 func checkVal(ts string, pos memberPos) bool {

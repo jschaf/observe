@@ -276,7 +276,7 @@ func TestParseState(t *testing.T) {
 
 func genTracestateSequence(tmpl string, n int) string {
 	seq := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		seq[i] = strings.ReplaceAll(tmpl, "%d", strconv.Itoa(i))
 	}
 	return strings.Join(seq, ",")

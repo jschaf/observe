@@ -6,6 +6,8 @@ import (
 )
 
 // Nanos is the nanoseconds since the Unix epoch.
+//
+//nolint:recvcheck
 type Nanos int64
 
 // NewNanos converts a time.Time to Nanos. If the time is zero, it
@@ -35,9 +37,9 @@ func (u Nanos) ToTime() time.Time {
 // Returns true if the value was swapped.
 //
 //goland:noinspection GoMixedReceiverTypes
-func (u *Nanos) SwapIfZero(new Nanos) bool {
+func (u *Nanos) SwapIfZero(ns Nanos) bool {
 	p := (*int64)(u)
-	return atomic.CompareAndSwapInt64(p, 0, int64(new))
+	return atomic.CompareAndSwapInt64(p, 0, int64(ns))
 }
 
 //goland:noinspection GoMixedReceiverTypes

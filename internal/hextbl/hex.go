@@ -42,7 +42,7 @@ func ParseUint64(s string) (uint64, bool) {
 	var n uint64
 	invalidMark := byte(0)
 	for i := 0; i < len(s); i += 4 {
-		shift := uint((15 - i) * 4)
+		shift := uint((15 - i) * 4) //nolint:gosec
 		n |= uint64(Reverse[s[i]]) << shift
 		n |= uint64(Reverse[s[i+1]]) << (shift - 4)
 		n |= uint64(Reverse[s[i+2]]) << (shift - 8)

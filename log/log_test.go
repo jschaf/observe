@@ -2,7 +2,6 @@ package log
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -15,7 +14,7 @@ import (
 const textTimeRE = `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(Z|[+-]\d{2}:\d{2})`
 
 func TestLogTextHandler(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	var buf bytes.Buffer
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))

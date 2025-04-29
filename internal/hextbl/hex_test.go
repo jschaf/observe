@@ -34,6 +34,7 @@ func TestReadByte(t *testing.T) {
 		})
 	}
 }
+
 func TestParseUint64(t *testing.T) {
 	tests := []struct {
 		name   string

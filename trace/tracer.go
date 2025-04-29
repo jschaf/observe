@@ -7,8 +7,7 @@ import (
 	"github.com/jschaf/observe/internal/epoch"
 )
 
-type Tracer struct {
-}
+type Tracer struct{}
 
 type startConfig struct {
 	startTime epoch.Nanos

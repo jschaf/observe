@@ -1,0 +1,58 @@
+#file: noinspection SpellCheckingInspection
+version: "2"
+linters:
+  enable:
+    - depguard
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exptostd
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocritic
+    - godot
+    - godox
+    - gosec
+    - intrange
+    - mirror
+    - misspell
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - nolintlint
+    - predeclared
+    - reassign
+    - recvcheck
+    - sloglint
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - wrapcheck
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+  settings:
+    depguard:
+      rules:
+        Main:
+          list-mode: strict
+          allow: ["$gostd", "github.com/jschaf/observe"]
+    wrapcheck:
+      extra-ignore-sigs: ["json.Marshal("]
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    generated: lax

@@ -45,10 +45,13 @@ func (s SpanID) String() string {
 	return string(a[:])
 }
 
-//goland:noinspection SpellCheckingInspection
+func genTraceID() TraceID {
+	return TraceID{n: hextbl.Uint128{Hi: rand.Uint64(), Lo: rand.Uint64()}} //nolint:gosec
+}
 
-func genTraceID() TraceID { return TraceID{n: hextbl.Uint128{Hi: rand.Uint64(), Lo: rand.Uint64()}} }
-func genSpanID() SpanID   { return SpanID{n: rand.Uint64() & math.MaxInt64} }
+func genSpanID() SpanID {
+	return SpanID{n: rand.Uint64() & math.MaxInt64} //nolint:gosec
+}
 
 // ParseTraceID parses a 32-character hex string into a TraceID.
 func ParseTraceID(s string) (TraceID, error) {

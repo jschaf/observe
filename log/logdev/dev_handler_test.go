@@ -2,7 +2,6 @@ package log
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -22,11 +21,11 @@ func TestDevHandler_Sample(t *testing.T) {
 	l.Debug("debug level message", slog.String("attribute3", "value3"))
 	l.Warn("warning level with multiple attrs", slog.Float64("pi", 3.14), slog.Bool("isTest", true))
 	l.Error("error level message", slog.Any("details", map[string]any{"key": "value"}))
-	l.Info("info level message that is really, really, long", slog.String("attribute1", "value1"), slog.Int("attribute2", 42))
+	l.Info("info level message that is really, long", slog.String("attribute1", "value1"), slog.Int("attribute2", 42))
 }
 
 func TestDevHandler_Handle(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	buf := &bytes.Buffer{}
 	h := &DevHandler{w: buf}
 
@@ -44,7 +43,7 @@ func TestDevHandler_Handle(t *testing.T) {
 }
 
 func BenchmarkDevHandler_Handle(b *testing.B) {
-	ctx := context.Background()
+	ctx := b.Context()
 	buf := &bytes.Buffer{}
 	h := &DevHandler{w: buf}
 

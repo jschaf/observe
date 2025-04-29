@@ -21,7 +21,7 @@ func ParseUint128(s string) (Uint128, bool) {
 	var hi, lo uint64
 	invalidMark := byte(0)
 	for i := 0; i < 16; i += 4 {
-		shift := uint((15 - i) * 4)
+		shift := uint((15 - i) * 4) //nolint:gosec
 
 		hi |= uint64(Reverse[s[i]]) << shift
 		hi |= uint64(Reverse[s[i+1]]) << (shift - 4)

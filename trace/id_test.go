@@ -31,7 +31,7 @@ func TestTraceID_String(t *testing.T) {
 	}
 
 	t.Run("random", func(t *testing.T) {
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			id := genTraceID()
 			if !id.IsValid() {
 				continue
@@ -156,7 +156,7 @@ func TestSpanID_String(t *testing.T) {
 	}
 
 	t.Run("random", func(t *testing.T) {
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			id := genSpanID()
 			if !id.IsValid() {
 				continue

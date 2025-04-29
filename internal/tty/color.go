@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+//nolint:gochecknoglobals
 var noColor = os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb"
 
 // Foreground colors.
@@ -21,6 +22,7 @@ const (
 	White   Color = 37
 )
 
+//nolint:gochecknoglobals
 var codes = [8]string{
 	"\x1b[30m",
 	"\x1b[31m",

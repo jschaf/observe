@@ -42,7 +42,7 @@ func TestSpan_End_Race(t *testing.T) {
 	for range readerCount {
 		go func() {
 			defer wg.Done()
-			for j := 0; j < 5; j++ {
+			for range 5 {
 				_ = span.IsRecording()
 				_ = span.EndTime()
 				time.Sleep(1 * time.Millisecond) // delay to allow interleaving

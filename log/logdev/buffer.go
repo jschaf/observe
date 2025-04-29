@@ -9,6 +9,8 @@ import "sync"
 type Buffer []byte
 
 // Having an initial size gives a dramatic speedup.
+//
+//nolint:gochecknoglobals
 var bufPool = sync.Pool{
 	New: func() any {
 		b := make([]byte, 0, 1024)
@@ -17,7 +19,8 @@ var bufPool = sync.Pool{
 }
 
 func NewBuffer() *Buffer {
-	return bufPool.Get().(*Buffer)
+	buf, _ := bufPool.Get().(*Buffer)
+	return buf
 }
 
 func (b *Buffer) Free() {
