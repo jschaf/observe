@@ -70,3 +70,13 @@ func TestSpan_End_Race(t *testing.T) {
 		t.Errorf("Span.IsRecording() should return false after End() was called")
 	}
 }
+
+func BenchmarkStartEndSpan(b *testing.B) {
+	tr := &trace.Tracer{}
+	ctx := b.Context()
+	b.ReportAllocs()
+	for b.Loop() {
+		_, span := tr.Start(ctx, "test-span")
+		span.End()
+	}
+}
