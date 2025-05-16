@@ -10,14 +10,8 @@ import (
 //nolint:recvcheck
 type Nanos int64
 
-// NewNanos converts a time.Time to Nanos. If the time is zero, it
-// returns zero.
-func NewNanos(t time.Time) Nanos {
-	if t.IsZero() {
-		return 0
-	}
-	return Nanos(t.UnixNano())
-}
+// NewNanos converts a time.Time to Nanos.
+func NewNanos(t time.Time) Nanos { return Nanos(t.UnixNano()) }
 
 // NanosNow returns the current time in nanoseconds since the epoch.
 func NanosNow() Nanos { return Nanos(time.Now().UnixNano()) }
@@ -33,7 +27,7 @@ func (u Nanos) ToTime() time.Time {
 	return time.Unix(0, int64(u))
 }
 
-// SwapIfZero atomically swaps the value of u with new if u is zero.
+// SwapIfZero atomically swaps the value of u with ns if u is zero.
 // Returns true if the value was swapped.
 //
 //goland:noinspection GoMixedReceiverTypes
