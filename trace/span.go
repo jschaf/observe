@@ -10,10 +10,10 @@ import (
 // tree.
 // https://opentelemetry.io/docs/specs/otel/trace/api/#span
 type Span struct {
-	tracer *Tracer     // immutable tracer that created this span
-	name   string      // immutable display name of the span
-	start  epoch.Nanos // immutable start time
-	end    epoch.Nanos // set by first call to End; protected with atomics
+	tracer *Tracer      // immutable tracer that created this span
+	name   string       // immutable display name of the span
+	start  epoch.Nanos  // immutable start time
+	end    *epoch.Nanos // set by first call to End; protected with atomics
 }
 
 // IsRecording returns true if the span currently records data. Returns false
@@ -23,7 +23,7 @@ func (s *Span) IsRecording() bool {
 	if s == nil {
 		return false
 	}
-	return (&s.end).Load() == 0
+	return s.end.Load() == 0
 }
 
 // StartTime returns when the span started. If the span is nil, it returns the
@@ -41,7 +41,7 @@ func (s *Span) EndTime() time.Time {
 	if s == nil {
 		return time.Time{}
 	}
-	return (&s.end).Load().ToTime()
+	return s.end.Load().ToTime()
 }
 
 type spanEndConfig struct {
@@ -73,7 +73,7 @@ func (s *Span) End(opts ...SpanEndOption) {
 	}
 
 	// The first call sets the end time. Ignore all later calls.
-	if !(&s.end).SwapIfZero(cfg.endTime) {
+	if !s.end.SwapIfZero(cfg.endTime) {
 		return
 	}
 }

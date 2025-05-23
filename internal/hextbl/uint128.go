@@ -13,7 +13,8 @@ type Uint128 struct {
 	Lo uint64
 }
 
-// ParseUint128 parses a 32-byte hex string to Uint128.
+// ParseUint128 parses a 32-byte lower-case hex string to Uint128. Returns 0 if
+// the hex string is not valid. All zeros are not a valid Trace ID.
 func ParseUint128(s string) Uint128 {
 	if len(s) != 32 {
 		return Uint128{}
