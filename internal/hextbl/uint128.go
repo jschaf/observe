@@ -14,32 +14,30 @@ type Uint128 struct {
 }
 
 // ParseUint128 parses a 32-byte hex string to Uint128.
-func ParseUint128(s string) (Uint128, bool) {
+func ParseUint128(s string) Uint128 {
 	if len(s) != 32 {
-		return Uint128{}, false
+		return Uint128{}
 	}
-	var hi, lo uint64
-	invalidMark := byte(0)
-	for i := 0; i < 16; i += 4 {
-		shift := uint((15 - i) * 4) //nolint:gosec
 
-		hi |= uint64(Reverse[s[i]]) << shift
-		hi |= uint64(Reverse[s[i+1]]) << (shift - 4)
-		hi |= uint64(Reverse[s[i+2]]) << (shift - 8)
-		hi |= uint64(Reverse[s[i+3]]) << (shift - 12)
+	hi0 := reverseDigit0[s[0x0]] | reverseDigit1[s[0x1]] | reverseDigit2[s[0x2]] | reverseDigit3[s[0x3]]
+	hi1 := reverseDigit0[s[0x4]] | reverseDigit1[s[0x5]] | reverseDigit2[s[0x6]] | reverseDigit3[s[0x7]]
+	hi2 := reverseDigit0[s[0x8]] | reverseDigit1[s[0x9]] | reverseDigit2[s[0xa]] | reverseDigit3[s[0xb]]
+	hi3 := reverseDigit0[s[0xc]] | reverseDigit1[s[0xd]] | reverseDigit2[s[0xe]] | reverseDigit3[s[0xf]]
 
-		lo |= uint64(Reverse[s[16+i]]) << shift
-		lo |= uint64(Reverse[s[16+i+1]]) << (shift - 4)
-		lo |= uint64(Reverse[s[16+i+2]]) << (shift - 8)
-		lo |= uint64(Reverse[s[16+i+3]]) << (shift - 12)
+	lo0 := reverseDigit0[s[0x10]] | reverseDigit1[s[0x11]] | reverseDigit2[s[0x12]] | reverseDigit3[s[0x13]]
+	lo1 := reverseDigit0[s[0x14]] | reverseDigit1[s[0x15]] | reverseDigit2[s[0x16]] | reverseDigit3[s[0x17]]
+	lo2 := reverseDigit0[s[0x18]] | reverseDigit1[s[0x19]] | reverseDigit2[s[0x1a]] | reverseDigit3[s[0x1b]]
+	lo3 := reverseDigit0[s[0x1c]] | reverseDigit1[s[0x1d]] | reverseDigit2[s[0x1e]] | reverseDigit3[s[0x1f]]
 
-		invalidMark |= Reverse[s[i]] | Reverse[s[i+1]] | Reverse[s[i+2]] | Reverse[s[i+3]]
-		invalidMark |= Reverse[s[16+i]] | Reverse[s[16+i+1]] | Reverse[s[16+i+2]] | Reverse[s[16+i+3]]
+	hiInvalid := (hi0&invalidReverse | hi1&invalidReverse | hi2&invalidReverse | hi3&invalidReverse) == invalidReverse
+	loInvalid := (lo0&invalidReverse | lo1&invalidReverse | lo2&invalidReverse | lo3&invalidReverse) == invalidReverse
+	if hiInvalid || loInvalid {
+		return Uint128{}
 	}
-	if invalidMark&0xf0 != 0 {
-		return Uint128{}, false
-	}
-	return Uint128{Hi: hi, Lo: lo}, true
+
+	hi := (hi0 << 48) | (hi1 << 32) | (hi2 << 16) | hi3
+	lo := (lo0 << 48) | (lo1 << 32) | (lo2 << 16) | lo3
+	return Uint128{Hi: hi, Lo: lo}
 }
 
 // IsZero reports whether u == 0.

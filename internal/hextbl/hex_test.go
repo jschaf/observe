@@ -39,66 +39,56 @@ func TestReadByte(t *testing.T) {
 
 func TestParseUint64(t *testing.T) {
 	tests := []struct {
-		name   string
-		in     string
-		want   uint64
-		wantOk bool
+		name string
+		in   string
+		want uint64
 	}{
 		{
-			name:   "filled",
-			in:     "0123456789abcdef",
-			want:   0x0123456789ABCDEF,
-			wantOk: true,
+			name: "filled",
+			in:   "0123456789abcdef",
+			want: 0x0123456789ABCDEF,
 		},
 		{
-			name:   "single max byte",
-			in:     "ff00000000000000",
-			want:   0xFF00000000000000,
-			wantOk: true,
+			name: "single max byte",
+			in:   "ff00000000000000",
+			want: 0xFF00000000000000,
 		},
 
 		// Invalid
 		{
-			name:   "zero",
-			in:     "0000000000000000",
-			want:   0,
-			wantOk: false,
+			name: "zero",
+			in:   "0000000000000000",
+			want: 0,
 		},
 		{
-			name:   "invalid length short",
-			in:     "abc",
-			want:   0,
-			wantOk: false,
+			name: "invalid length short",
+			in:   "abc",
+			want: 0,
 		},
 		{
-			name:   "filled uppercase",
-			in:     "0123456789ABCDEF",
-			want:   0,
-			wantOk: false,
+			name: "filled uppercase",
+			in:   "0123456789ABCDEF",
+			want: 0,
 		},
 		{
-			name:   "single uppercase",
-			in:     "0000A00000000000",
-			want:   0,
-			wantOk: false,
+			name: "single uppercase",
+			in:   "0000A00000000000",
+			want: 0,
 		},
 		{
-			name:   "two uppercase",
-			in:     "FF00000000000000",
-			want:   0,
-			wantOk: false,
+			name: "two uppercase",
+			in:   "FF00000000000000",
+			want: 0,
 		},
 		{
-			name:   "invalid length long",
-			in:     "0123456789abcdef0",
-			want:   0,
-			wantOk: false,
+			name: "invalid length long",
+			in:   "0123456789abcdef0",
+			want: 0,
 		},
 		{
-			name:   "invalid char",
-			in:     "z123456789abcdef",
-			want:   0,
-			wantOk: false,
+			name: "invalid char",
+			in:   "z123456789abcdef",
+			want: 0,
 		},
 	}
 
@@ -106,7 +96,7 @@ func TestParseUint64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := hextbl.ParseUint64(tt.in)
 			if got != tt.want {
-				t.Errorf("ParseUint64Table(%q) = %v, want %v", tt.in, got, tt.want)
+				t.Errorf("ParseUint64(%q) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}
@@ -137,9 +127,6 @@ func slowParseUint64(s string) uint64 {
 	}
 	bs, err := hex.DecodeString(s)
 	if err != nil {
-		return 0
-	}
-	if len(bs) != 8 {
 		return 0
 	}
 	// Convert to uint64.
@@ -188,7 +175,7 @@ func BenchmarkParseUint64(b *testing.B) {
 		for b.Loop() {
 			n := hextbl.ParseUint64("0123456789abcdef")
 			if n != 0x0123456789ABCDEF {
-				b.Fatalf("ParseUint64Table() = %v, want %v", n, 0x0123456789ABCDEF)
+				b.Fatalf("ParseUint64() = %v, want %v", n, 0x0123456789ABCDEF)
 			}
 		}
 	})
@@ -197,7 +184,7 @@ func BenchmarkParseUint64(b *testing.B) {
 		for b.Loop() {
 			_, err := hex.DecodeString("0123456789abcdef")
 			if err != nil {
-				b.Fatalf("ParseUint64() invalid")
+				b.Fatalf("decode hex: %v", err)
 			}
 		}
 	})
