@@ -62,8 +62,8 @@ func ReadByte(a, b byte) (byte, bool) {
 	return (x << 4) | y, true
 }
 
-// ParseUint64 parses a 16-byte hex string into a uint64. Returns 0 if the
-// string is not valid. All zeros are not a valid Span ID.
+// ParseUint64 parses a 16-byte lower-case hex string into a uint64. Returns 0
+// if the string is not valid. All zeros are not a valid Span ID.
 func ParseUint64(s string) uint64 {
 	if len(s) != 16 {
 		return 0

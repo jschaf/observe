@@ -23,7 +23,7 @@ func WithStartTime(t time.Time) SpanStartOption {
 }
 
 // Start starts a Span and returns a new context containing the Span.
-func (t *Tracer) Start(ctx context.Context, name string, opts ...SpanStartOption) (context.Context, *Span) {
+func (t *Tracer) Start(ctx context.Context, name string, opts ...SpanStartOption) (context.Context, Span) {
 	cfg := startConfig{}
 	for _, opt := range opts {
 		cfg = opt(cfg)
@@ -32,10 +32,11 @@ func (t *Tracer) Start(ctx context.Context, name string, opts ...SpanStartOption
 		cfg.startTime = epoch.NanosNow()
 	}
 
-	span := &Span{
+	span := Span{
 		name:   name,
 		tracer: t,
 		start:  cfg.startTime,
+		end:    new(epoch.Nanos),
 	}
 
 	return ctx, span

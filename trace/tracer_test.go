@@ -39,7 +39,7 @@ func TestTracer_Start(t *testing.T) {
 	})
 }
 
-func startTestSpan(t *testing.T, opts ...trace.SpanStartOption) *trace.Span {
+func startTestSpan(t *testing.T, opts ...trace.SpanStartOption) trace.Span {
 	t.Helper()
 	tr := &trace.Tracer{}
 	ctx := t.Context()
