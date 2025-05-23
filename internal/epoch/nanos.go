@@ -3,6 +3,7 @@ package epoch
 import (
 	"sync/atomic"
 	"time"
+	_ "unsafe"
 )
 
 // Nanos is the nanoseconds since the Unix epoch.
@@ -14,7 +15,9 @@ type Nanos int64
 func NewNanos(t time.Time) Nanos { return Nanos(t.UnixNano()) }
 
 // NanosNow returns the current time in nanoseconds since the epoch.
-func NanosNow() Nanos { return Nanos(time.Now().UnixNano()) }
+//
+//go:nosplit
+func NanosNow() Nanos { return Nanos(nanotime()) }
 
 // ToTime converts the Nanos to a time.Time. If the value is zero, it
 // returns the zero-value of time.Time.
@@ -40,3 +43,7 @@ func (u *Nanos) SwapIfZero(ns Nanos) bool {
 func (u *Nanos) Load() Nanos {
 	return Nanos(atomic.LoadInt64((*int64)(u)))
 }
+
+//go:linkname nanotime runtime.nanotime
+//go:noescape
+func nanotime() int64
