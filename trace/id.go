@@ -64,8 +64,8 @@ func ParseTraceID(s string) (TraceID, error) {
 
 // ParseSpanID parses a 16-character hex string into a SpanID.
 func ParseSpanID(s string) (SpanID, error) {
-	n, ok := hextbl.ParseUint64(s)
-	if !ok {
+	n := hextbl.ParseUint64(s)
+	if n == 0 {
 		return SpanID{}, fmt.Errorf("invalid hex span ID: %s", s)
 	}
 	return SpanID{n: n}, nil

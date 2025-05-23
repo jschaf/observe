@@ -37,12 +37,6 @@ func TestParseUint128(t *testing.T) {
 			want:   hextbl.Uint128{Hi: 0x0123456789abcdef, Lo: 0x0123456789abcdef},
 			wantOk: true,
 		},
-		{
-			name:   "filled uppercase",
-			in:     "0123456789ABCDEF0123456789ABCDEF",
-			want:   hextbl.Uint128{Hi: 0x0123456789abcdef, Lo: 0x0123456789abcdef},
-			wantOk: true,
-		},
 
 		// Invalid
 		{
@@ -61,6 +55,12 @@ func TestParseUint128(t *testing.T) {
 			name:   "invalid char",
 			in:     "z123456789abcdef0123456789abcdef",
 			want:   hextbl.Uint128{},
+			wantOk: false,
+		},
+		{
+			name:   "filled uppercase",
+			in:     "0123456789ABCDEF0123456789ABCDEF",
+			want:   hextbl.Uint128{Hi: 0, Lo: 0},
 			wantOk: false,
 		},
 	}

@@ -55,13 +55,6 @@ func TestHTTPHeader_ExtractContext(t *testing.T) {
 			},
 		},
 		{
-			name:        "valid uppercase",
-			traceparent: "00-4BF92F3577B34DA6A3CE929D0E0E4736-00F067AA0BA902B7-01",
-			want: http.Header{
-				headerTraceparent: []string{"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
-			},
-		},
-		{
 			name:        "valid not sampled",
 			traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00",
 			want: http.Header{
@@ -105,6 +98,11 @@ func TestHTTPHeader_ExtractContext(t *testing.T) {
 			want: http.Header{
 				headerTraceparent: []string{"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
 			},
+		},
+		{
+			name:        "invalid uppercase",
+			traceparent: "00-4BF92F3577B34DA6A3CE929D0E0E4736-00F067AA0BA902B7-01",
+			want:        http.Header{},
 		},
 	}
 	for _, tt := range tests {
