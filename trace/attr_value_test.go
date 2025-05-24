@@ -1,7 +1,10 @@
 package trace
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/jschaf/observe/internal/difftest"
 )
 
 func TestKindString(t *testing.T) {
@@ -27,15 +30,24 @@ func TestValueString(t *testing.T) {
 		v    Value
 		want string
 	}{
-		{int64Value(-3), "-3"},
-		{float64Value(.15), "0.15"},
 		{boolValue(true), "true"},
+		{float64Value(.15), "0.15"},
+		{int64Value(-3), "-3"},
 		{stringValue("foo"), "foo"},
+		{boolsValue([]bool{true, false, true, false, false}), "[true,false,true,false,false]"},
 	} {
 		if got := test.v.String(); got != test.want {
 			t.Errorf("%#v:\ngot  %q\nwant %q", test.v, got, test.want)
 		}
 	}
+}
+
+func TestValue_BoolsTruncated(t *testing.T) {
+	bs := make([]bool, 100)
+	val := boolsValue(bs)
+	want := "[" + strings.Repeat("false,", 55) + "false]"
+	got := val.String()
+	difftest.AssertSame(t, "BoolsTruncated", got, want)
 }
 
 func TestValueNoAlloc(t *testing.T) {

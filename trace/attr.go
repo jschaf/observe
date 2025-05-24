@@ -11,6 +11,12 @@ func Bool(key string, value bool) Attr {
 	return Attr{key, boolValue(value)}
 }
 
+// Bools returns an Attr for a bool slice.
+// Only records the first 56 elements, dropping subsequent elements.
+func Bools(key string, value []bool) Attr {
+	return Attr{key, boolsValue(value)}
+}
+
 // Float64 returns an Attr for a floating-point number.
 func Float64(key string, value float64) Attr {
 	return Attr{key, float64Value(value)}
