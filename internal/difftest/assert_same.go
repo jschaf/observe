@@ -1,6 +1,7 @@
 package difftest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -20,6 +21,16 @@ func diff(a, b any) string {
 	switch x := a.(type) {
 	case bool, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32, float64:
 		return diffString(fmt.Sprint(a), fmt.Sprint(b))
+	case []bool:
+		aOut, err := json.Marshal(a)
+		if err != nil {
+			return fmt.Sprintf("<error> marshal []bool: %v", err)
+		}
+		bOut, err := json.Marshal(b)
+		if err != nil {
+			return fmt.Sprintf("<error> marshal []bool: %v", err)
+		}
+		return diffString(string(aOut), string(bOut))
 	case string:
 		y, _ := b.(string)
 		return diffString(x, y)

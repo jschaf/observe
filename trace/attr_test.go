@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"testing"
@@ -25,11 +26,14 @@ func TestAttr_RoundTrip(t *testing.T) {
 
 	assertRoundTrip(t, "string", "")
 	assertRoundTrip(t, "string", "string-value")
+
+	assertRoundTrip(t, "bool", []bool{true, false, true, false, false})
 }
 
 func assertRoundTrip(t *testing.T, key string, val any) {
 	t.Helper()
 	var attr Attr
+	var wantValStr string
 	switch v := val.(type) {
 	case bool:
 		attr = Bool(key, v)
@@ -46,11 +50,22 @@ func assertRoundTrip(t *testing.T, key string, val any) {
 	case string:
 		attr = String(key, v)
 		difftest.AssertSame(t, "round trip value string", v, attr.Value.String())
+	case []bool:
+		attr = Bools(key, v)
+		out, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("marshal bool slice %v: %v", v, err)
+		}
+		wantValStr = string(out)
+		difftest.AssertSame(t, "round trip value bools", v, attr.Value.Bools())
 	default:
 		t.Fatalf("unsupported type %T for key %s", v, key)
 	}
 	msg := fmt.Sprintf("round trip %s=%v", key, val)
-	wantAttrStr := key + "=" + fmt.Sprint(val)
+	if wantValStr == "" {
+		wantValStr = fmt.Sprint(val)
+	}
+	wantAttrStr := key + "=" + wantValStr
 	gotAttrStr := attr.String()
 	difftest.AssertSame(t, msg, wantAttrStr, gotAttrStr)
 }

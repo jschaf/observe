@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"unsafe"
 )
 
@@ -41,14 +42,17 @@ func newTaggedNum(kind valueKind, num uint64) taggedNum {
 		return taggedNum{n: 0}
 	case kindBool, kindFloat64, kindInt64:
 		return taggedNum{n: num}
-	case kindString, kindBoolSlice, kindFloat64Slice, kindInt64Slice, kindStringSlice:
+	case kindBoolSlice:
+		return taggedNum{n: num} // length encoded in the most significant bits
+	case kindString, kindFloat64Slice, kindInt64Slice, kindStringSlice:
 		return taggedNum{n: uint64(kind)<<(64-tagSize) | num}
 	default:
 		panic(fmt.Sprintf("unknown value kind: %s", kind))
 	}
 }
 
-// value returns the value of a bool, int64, or float64 value.
+// value returns the value of a bool, int64, float64 value, or the bool slice
+// bitset.
 func (t taggedNum) value() uint64 { return t.n }
 
 // kind returns the kind of a string or slice.
@@ -76,9 +80,10 @@ const (
 // Marker pointers for the data field of Value. Indicates the kind of data
 // store in Value.num.
 var (
-	dataKindBool    = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
-	dataKindFloat64 = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
-	dataKindInt64   = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
+	dataKindBool      = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
+	dataKindFloat64   = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
+	dataKindInt64     = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
+	dataKindBoolSlice = (unsafe.Pointer)(new(byte)) //nolint:gochecknoglobals // marker pointer
 )
 
 //nolint:gochecknoglobals // string literals for string func
@@ -134,6 +139,23 @@ func stringValue(value string) Value {
 	}
 }
 
+func boolsValue(v []bool) Value {
+	hi := uint64(min(len(v), 56)) //nolint:gosec // len is positive, no underflow
+	var n uint64
+	for i := range hi {
+		n <<= 1
+		if v[i] {
+			n |= 1
+		}
+	}
+	n |= hi << (64 - tagSize)
+
+	return Value{
+		num:  newTaggedNum(kindBoolSlice, n),
+		data: dataKindBoolSlice,
+	}
+}
+
 func (v Value) kind() valueKind {
 	switch v.data {
 	case dataKindBool:
@@ -142,6 +164,8 @@ func (v Value) kind() valueKind {
 		return kindInt64
 	case dataKindFloat64:
 		return kindFloat64
+	case dataKindBoolSlice:
+		return kindBoolSlice
 	default:
 		return v.num.kind()
 	}
@@ -154,6 +178,17 @@ func (v Value) uncheckedBool() bool       { return v.num.value() == 1 }
 func (v Value) uncheckedFloat64() float64 { return math.Float64frombits(v.num.value()) }
 func (v Value) uncheckedInt64() int64     { return int64(v.num.value()) } //nolint:gosec // safe conversion to int64
 func (v Value) uncheckedString() string   { return unsafe.String((*byte)(v.data), v.num.len()) }
+
+func (v Value) uncheckedBools() []bool {
+	count := int(v.num.n >> (64 - tagSize)) //nolint:gosec // only 8 bits
+	bs := make([]bool, count)
+	n := v.num.value() << tagSize >> tagSize
+	for i := count - 1; i >= 0; i-- {
+		bs[i] = (n & 1) != 0
+		n >>= 1
+	}
+	return bs
+}
 
 // Checked accessors
 // =================
@@ -216,9 +251,27 @@ func (v Value) String() string {
 		return strconv.FormatFloat(v.uncheckedFloat64(), 'g', -1, 64)
 	case kindString:
 		return v.uncheckedString()
-	case kindBoolSlice, kindFloat64Slice, kindInt64Slice, kindStringSlice:
+	case kindBoolSlice:
+		sb := strings.Builder{}
+		sb.WriteByte('[')
+		for i, b := range v.Bools() {
+			if i > 0 {
+				sb.WriteString(",")
+			}
+			sb.WriteString(strconv.FormatBool(b))
+		}
+		sb.WriteByte(']')
+		return sb.String()
+	case kindFloat64Slice, kindInt64Slice, kindStringSlice:
 		panic("unimplemented: Value.String() for slices")
 	default:
 		panic(fmt.Sprintf("bad kind: %s", k))
 	}
+}
+
+func (v Value) Bools() []bool {
+	if g, w := v.kind(), kindBoolSlice; g != w {
+		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
+	}
+	return v.uncheckedBools()
 }
