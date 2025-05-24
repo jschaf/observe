@@ -18,6 +18,8 @@ func AssertSame[T any](t *testing.T, msg string, want, got T) {
 //golint:ignore:asciicheck
 func diff(a, b any) string {
 	switch x := a.(type) {
+	case bool, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32, float64:
+		return diffString(fmt.Sprint(a), fmt.Sprint(b))
 	case string:
 		y, _ := b.(string)
 		return diffString(x, y)
