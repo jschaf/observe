@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"slices"
 	"testing"
 
 	"github.com/jschaf/observe/internal/difftest"
@@ -27,7 +28,30 @@ func TestAttr_RoundTrip(t *testing.T) {
 	assertRoundTrip(t, "string", "")
 	assertRoundTrip(t, "string", "string-value")
 
-	assertRoundTrip(t, "bool", []bool{true, false, true, false, false})
+	assertRoundTrip(t, "bools", []bool{})
+	assertRoundTrip(t, "bools", []bool{true})
+	assertRoundTrip(t, "bools", []bool{false})
+	assertRoundTrip(t, "bools", []bool{true, false, true, false, false})
+
+	assertRoundTrip(t, "float64s", []float64{})
+	assertRoundTrip(t, "float64s", []float64{1.0})
+	assertRoundTrip(t, "float64s", []float64{1.0, 2.0, 3.0, 4.0, 5.0})
+	assertRoundTrip(t, "float64s", slices.Repeat([]float64{50.0}, 1024))
+
+	assertRoundTrip(t, "ints", []int{})
+	assertRoundTrip(t, "ints", []int{1})
+	assertRoundTrip(t, "ints", []int{1, 2, 3, 4, 5})
+	assertRoundTrip(t, "ints", slices.Repeat([]int{50}, 1024))
+
+	assertRoundTrip(t, "int64s", []int64{})
+	assertRoundTrip(t, "int64s", []int64{1})
+	assertRoundTrip(t, "int64s", []int64{1, 2, 3, 4, 5})
+	assertRoundTrip(t, "int64s", slices.Repeat([]int64{50}, 1024))
+
+	assertRoundTrip(t, "strings", []string{})
+	assertRoundTrip(t, "strings", []string{"foo"})
+	assertRoundTrip(t, "strings", []string{"foo", "bar", "baz"})
+	assertRoundTrip(t, "strings", slices.Repeat([]string{"foo"}, 1024))
 }
 
 func assertRoundTrip(t *testing.T, key string, val any) {
@@ -57,7 +81,39 @@ func assertRoundTrip(t *testing.T, key string, val any) {
 			t.Fatalf("marshal bool slice %v: %v", v, err)
 		}
 		wantValStr = string(out)
-		difftest.AssertSame(t, "round trip value bools", v, attr.Value.Bools())
+		difftest.AssertSame(t, "round trip value bools", v, slices.Collect(attr.Value.Bools()))
+	case []float64:
+		attr = Float64s(key, v)
+		out, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("marshal float64 slice %v: %v", v, err)
+		}
+		wantValStr = string(out)
+		difftest.AssertSame(t, "round trip value float64s", v, slices.Collect(attr.Value.Float64s()))
+	case []int:
+		attr = Ints(key, v)
+		out, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("marshal int64 slice %v: %v", v, err)
+		}
+		wantValStr = string(out)
+		difftest.AssertSame(t, "round trip value ints", v, slices.Collect(attr.Value.Ints()))
+	case []int64:
+		attr = Int64s(key, v)
+		out, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("marshal int64 slice %v: %v", v, err)
+		}
+		wantValStr = string(out)
+		difftest.AssertSame(t, "round trip value int64s", v, slices.Collect(attr.Value.Int64s()))
+	case []string:
+		attr = Strings(key, v)
+		out, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("marshal string slice %v: %v", v, err)
+		}
+		wantValStr = string(out)
+		difftest.AssertSame(t, "round trip value strings", v, slices.Collect(attr.Value.Strings()))
 	default:
 		t.Fatalf("unsupported type %T for key %s", v, key)
 	}

@@ -22,15 +22,23 @@ func diff(a, b any) string {
 	case bool, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float32, float64:
 		return diffString(fmt.Sprint(a), fmt.Sprint(b))
 	case []bool:
-		aOut, err := json.Marshal(a)
-		if err != nil {
-			return fmt.Sprintf("<error> marshal []bool: %v", err)
-		}
-		bOut, err := json.Marshal(b)
-		if err != nil {
-			return fmt.Sprintf("<error> marshal []bool: %v", err)
-		}
-		return diffString(string(aOut), string(bOut))
+		y, _ := b.([]bool)
+		return diffSlices(x, y)
+	case []int:
+		y, _ := b.([]int)
+		return diffSlices(x, y)
+	case []int64:
+		y, _ := b.([]int64)
+		return diffSlices(x, y)
+	case []float64:
+		y, _ := b.([]float64)
+		return diffSlices(x, y)
+	case []string:
+		y, _ := b.([]string)
+		return diffSlices(x, y)
+	case []uint64:
+		y, _ := b.([]uint64)
+		return diffSlices(x, y)
 	case string:
 		y, _ := b.(string)
 		return diffString(x, y)
@@ -46,6 +54,21 @@ func diff(a, b any) string {
 	default:
 		return fmt.Sprintf("diff not implemented for type: %T", a)
 	}
+}
+
+func diffSlices[T any](a []T, b []T) string {
+	if len(a) == 0 && len(b) == 0 {
+		return ""
+	}
+	aOut, err := json.Marshal(a)
+	if err != nil {
+		return fmt.Sprintf("<error> marshal %T: %v", a, err)
+	}
+	bOut, err := json.Marshal(b)
+	if err != nil {
+		return fmt.Sprintf("<error> marshal %T: %v", b, err)
+	}
+	return diffString(string(aOut), string(bOut))
 }
 
 func diffString(a, b string) string {

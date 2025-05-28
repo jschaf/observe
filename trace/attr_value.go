@@ -2,7 +2,9 @@ package trace
 
 import (
 	"fmt"
+	"iter"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -70,11 +72,11 @@ const (
 	kindBool                   // data == dataKindBool      num == 0 or 1
 	kindFloat64                // data == dataKindFloat64   num == math.Float64bits(v)
 	kindInt64                  // data == dataKindInt64     num == int64(v)
-	kindString                 // data == string data ptr   num == tag & len(v)
-	kindBoolSlice              // data == slice data ptr    num == tag & len(v)
-	kindFloat64Slice           // data == slice data ptr    num == tag & len(v)
-	kindInt64Slice             // data == slice data ptr    num == tag & len(v)
-	kindStringSlice            // data == slice data ptr    num == tag & len(v)
+	kindString                 // data == string data ptr   num == tag | len(v)
+	kindBoolSlice              // data == slice data ptr    num == tag | len(v)
+	kindFloat64Slice           // data == slice data ptr    num == tag | len(v)
+	kindInt64Slice             // data == slice data ptr    num == tag | len(v)
+	kindStringSlice            // data == slice data ptr    num == tag | len(v)
 )
 
 // Marker pointers for the data field of Value. Indicates the kind of data
@@ -139,20 +141,50 @@ func stringValue(value string) Value {
 	}
 }
 
-func boolsValue(v []bool) Value {
-	hi := uint64(min(len(v), 56)) //nolint:gosec // len is positive, no underflow
+func boolsValue(sl []bool) Value {
+	cnt := uint64(min(len(sl), 56)) //nolint:gosec // len is positive, no underflow
 	var n uint64
-	for i := range hi {
+	// Iterate over the slice in reverse order to pack the bits
+	// into the least significant bits of n.
+	for _, b := range slices.Backward(sl[:cnt]) {
 		n <<= 1
-		if v[i] {
+		if b {
 			n |= 1
 		}
 	}
-	n |= hi << (64 - tagSize)
+	n |= cnt << (64 - tagSize)
 
 	return Value{
 		num:  newTaggedNum(kindBoolSlice, n),
 		data: dataKindBoolSlice,
+	}
+}
+
+func intsValue(sl []int) Value {
+	return Value{
+		num:  newTaggedNum(kindInt64Slice, uint64(len(sl))),
+		data: (unsafe.Pointer)(unsafe.SliceData(sl)),
+	}
+}
+
+func int64sValue(sl []int64) Value {
+	return Value{
+		num:  newTaggedNum(kindInt64Slice, uint64(len(sl))),
+		data: (unsafe.Pointer)(unsafe.SliceData(sl)),
+	}
+}
+
+func float64sValue(sl []float64) Value {
+	return Value{
+		num:  newTaggedNum(kindFloat64Slice, uint64(len(sl))),
+		data: (unsafe.Pointer)(unsafe.SliceData(sl)),
+	}
+}
+
+func stringsValue(sl []string) Value {
+	return Value{
+		num:  newTaggedNum(kindStringSlice, uint64(len(sl))),
+		data: (unsafe.Pointer)(unsafe.SliceData(sl)),
 	}
 }
 
@@ -179,15 +211,41 @@ func (v Value) uncheckedFloat64() float64 { return math.Float64frombits(v.num.va
 func (v Value) uncheckedInt64() int64     { return int64(v.num.value()) } //nolint:gosec // safe conversion to int64
 func (v Value) uncheckedString() string   { return unsafe.String((*byte)(v.data), v.num.len()) }
 
-func (v Value) uncheckedBools() []bool {
-	count := int(v.num.n >> (64 - tagSize)) //nolint:gosec // only 8 bits
-	bs := make([]bool, count)
-	n := v.num.value() << tagSize >> tagSize
-	for i := count - 1; i >= 0; i-- {
-		bs[i] = (n & 1) != 0
-		n >>= 1
+func (v Value) uncheckedBools() iter.Seq[bool] {
+	return func(yield func(bool) bool) {
+		count := int(v.num.n >> (64 - tagSize)) //nolint:gosec // only 8 bits
+		n := v.num.value() << tagSize >> tagSize
+		for range count {
+			if !yield((n & 1) != 0) {
+				return
+			}
+			n >>= 1
+		}
 	}
-	return bs
+}
+
+func (v Value) uncheckedFloat64s() iter.Seq[float64] {
+	//goland:noinspection GoRedundantConversion
+	sl := unsafe.Slice((*float64)(v.data), v.num.len())
+	return slices.Values(sl)
+}
+
+func (v Value) uncheckedInts() iter.Seq[int] {
+	//goland:noinspection GoRedundantConversion
+	sl := unsafe.Slice((*int)(v.data), v.num.len())
+	return slices.Values(sl)
+}
+
+func (v Value) uncheckedInt64s() iter.Seq[int64] {
+	//goland:noinspection GoRedundantConversion
+	sl := unsafe.Slice((*int64)(v.data), v.num.len())
+	return slices.Values(sl)
+}
+
+func (v Value) uncheckedStrings() iter.Seq[string] {
+	//goland:noinspection GoRedundantConversion
+	sl := unsafe.Slice((*string)(v.data), v.num.len())
+	return slices.Values(sl)
 }
 
 // Checked accessors
@@ -206,8 +264,14 @@ func (v Value) Any() any {
 		return v.uncheckedInt64()
 	case kindString:
 		return v.uncheckedString()
-	case kindBoolSlice, kindFloat64Slice, kindInt64Slice, kindStringSlice:
-		panic("unimplemented: Value.Any() for slices")
+	case kindBoolSlice:
+		return slices.Collect(v.Bools())
+	case kindFloat64Slice:
+		return slices.Collect(v.Float64s())
+	case kindInt64Slice:
+		return slices.Collect(v.Int64s())
+	case kindStringSlice:
+		return slices.Collect(v.Strings())
 	default:
 		panic(fmt.Sprintf("bad kind: %s", k))
 	}
@@ -252,26 +316,70 @@ func (v Value) String() string {
 	case kindString:
 		return v.uncheckedString()
 	case kindBoolSlice:
-		sb := strings.Builder{}
-		sb.WriteByte('[')
-		for i, b := range v.Bools() {
-			if i > 0 {
-				sb.WriteString(",")
-			}
-			sb.WriteString(strconv.FormatBool(b))
-		}
-		sb.WriteByte(']')
-		return sb.String()
-	case kindFloat64Slice, kindInt64Slice, kindStringSlice:
-		panic("unimplemented: Value.String() for slices")
+		return formatSlice(v.Bools(), strconv.FormatBool)
+	case kindFloat64Slice:
+		return formatSlice(v.Float64s(), func(f float64) string {
+			return strconv.FormatFloat(f, 'g', -1, 64)
+		})
+	case kindInt64Slice:
+		return formatSlice(v.Int64s(), func(f int64) string {
+			return strconv.FormatInt(f, 10)
+		})
+	case kindStringSlice:
+		return formatSlice(v.Strings(), func(s string) string {
+			return fmt.Sprintf(`%q`, s)
+		})
 	default:
 		panic(fmt.Sprintf("bad kind: %s", k))
 	}
 }
 
-func (v Value) Bools() []bool {
+func formatSlice[T any](seq iter.Seq[T], format func(T) string) string {
+	sb := strings.Builder{}
+	sb.WriteByte('[')
+	i := 0
+	for b := range seq {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		i++
+		sb.WriteString(format(b))
+	}
+	sb.WriteByte(']')
+	return sb.String()
+}
+
+func (v Value) Bools() iter.Seq[bool] {
 	if g, w := v.kind(), kindBoolSlice; g != w {
 		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
 	}
 	return v.uncheckedBools()
+}
+
+func (v Value) Ints() iter.Seq[int] {
+	if g, w := v.kind(), kindInt64Slice; g != w {
+		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
+	}
+	return v.uncheckedInts()
+}
+
+func (v Value) Int64s() iter.Seq[int64] {
+	if g, w := v.kind(), kindInt64Slice; g != w {
+		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
+	}
+	return v.uncheckedInt64s()
+}
+
+func (v Value) Float64s() iter.Seq[float64] {
+	if g, w := v.kind(), kindFloat64Slice; g != w {
+		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
+	}
+	return v.uncheckedFloat64s()
+}
+
+func (v Value) Strings() iter.Seq[string] {
+	if g, w := v.kind(), kindStringSlice; g != w {
+		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
+	}
+	return v.uncheckedStrings()
 }
