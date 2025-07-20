@@ -2,9 +2,9 @@
 set -euo pipefail
 
 echo '::group::Download Go'
-go_bin="$HOME/go"
-mkdir -p "$go_bin"
-echo "$go_bin" >> "$GITHUB_PATH"
+goroot="./go"
+mkdir -p "$goroot"
+echo "$goroot" >> "$GITHUB_PATH"
 
 # Read Go version from go.mod.
 version=$(grep '^go ' "${GITHUB_WORKSPACE}/go.mod" | awk '{print $2}')
@@ -22,9 +22,9 @@ esac
 archive_url="https://go.dev/dl/go${version}.${platform}-${arch}.tar.gz"
 echo "Downloading from: $archive_url"
 curl --fail --silent --show-error --location --write-out "%{stderr}Downloaded in %{time_total} seconds\n" "$archive_url" \
-  | tar -xz --strip-components=2 -C "$go_bin" go/bin/go
+  | tar -xz --strip-components=1 -C "$goroot"
 
-export PATH="$PATH:$go_bin"
+export PATH="$PATH:$goroot"
 go version
 echo '::endgroup::'
 
