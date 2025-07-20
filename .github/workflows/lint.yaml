@@ -7,9 +7,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: ./.github/actions/go_setup
-
       - name: Run
         uses: golangci/golangci-lint-action@v7
         with:
