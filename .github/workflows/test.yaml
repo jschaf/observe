@@ -31,7 +31,7 @@ jobs:
                   file=$(echo "$line" | cut -d: -f1)
                   func=$(echo "$line" | cut -d: -f2 | sed 's/func \([^(]*\).*/\1/')
                   dir=$(dirname "$file")
-                  printf '{"function":"%s","directory":"%s"},' "$func" "$dir"
+                  printf '{"function":"%s","directory":"./%s"},' "$func" "$dir"
                 done
           )
           elems="[${fuzz_data%,}]" # trim trailing comma
