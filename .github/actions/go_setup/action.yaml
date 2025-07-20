@@ -3,6 +3,8 @@ description: Setup Go for testing and compilation.
 runs:
   using: composite
   steps:
+    # We don't have any deps, so skip go.sum as a hash.
+    # Use the week number to ensure cache is updated weekly.
     - name: Date
       id: date
       run: |
@@ -14,7 +16,7 @@ runs:
       with:
         path: |
           ~/.cache/go-build
-        key: ${{ runner.os }}-${{ runner.arch }}-go-build-${{ hashFiles('go.mod') }}-${{ steps.date.outputs.week-number }}
+        key: go-build-${{ runner.os }}-${{ runner.arch }}-${{ steps.date.outputs.week-number }}
         restore-keys: |
           ${{ runner.os }}-go-
     
