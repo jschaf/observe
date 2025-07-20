@@ -15,13 +15,13 @@ case "$(uname -m)" in
 esac
 echo "Go version: $version, platform: $platform, arch: $arch"
 
+# Add to path.
 goroot="$RUNNER_TOOL_CACHE/go/$version/$arch"
 mkdir -p "$goroot"
 echo "$goroot/bin" >> "$GITHUB_PATH"
 
 # Download.
-archive_url="https://github.com/actions/go-versions/releases/download/1.24.5-16210585985/go-1.24.5-linux-x64.tar.gz"
-#archive_url="https://go.dev/dl/go${version}.${platform}-${arch}.tar.gz"
+archive_url="https://go.dev/dl/go${version}.${platform}-${arch}.tar.gz"
 echo "Downloading from: $archive_url"
 curl --fail --silent --show-error --location --write-out "%{stderr}Downloaded in %{time_total} seconds\n" "$archive_url" \
   | tar -xz --strip-components=1 -C "$goroot"
