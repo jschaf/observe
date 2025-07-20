@@ -30,18 +30,14 @@ func (u Nanos) ToTime() time.Time {
 	return time.Unix(0, int64(u))
 }
 
-// SwapIfZero atomically swaps the value of u with ns if u is zero.
-// Returns true if the value was swapped.
-//
-//goland:noinspection GoMixedReceiverTypes
-func (u *Nanos) SwapIfZero(ns Nanos) bool {
-	p := (*int64)(u)
-	return atomic.CompareAndSwapInt64(p, 0, int64(ns))
-}
-
 //goland:noinspection GoMixedReceiverTypes
 func (u *Nanos) Load() Nanos {
 	return Nanos(atomic.LoadInt64((*int64)(u)))
+}
+
+//goland:noinspection GoMixedReceiverTypes
+func (u *Nanos) Store(ns Nanos) {
+	atomic.StoreInt64((*int64)(u), int64(ns))
 }
 
 //go:linkname nanotime runtime.nanotime
