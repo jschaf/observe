@@ -6,7 +6,7 @@ runs:
     - name: Date
       id: date
       run: |
-        echo "week-number=week-$(date -u "+%U") >> $GITHUB_OUTPUT
+        date -u "+week-number=week-%U" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Go build cache
