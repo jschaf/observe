@@ -4,7 +4,7 @@ set -euo pipefail
 echo '::group::Download Go'
 goroot="./go"
 mkdir -p "$goroot"
-echo "$goroot" >> "$GITHUB_PATH"
+echo "$goroot/bin" >> "$GITHUB_PATH"
 
 # Read Go version from go.mod.
 version=$(grep '^go ' "${GITHUB_WORKSPACE}/go.mod" | awk '{print $2}')
