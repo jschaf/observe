@@ -26,12 +26,11 @@ jobs:
           # Find all fuzz functions and their directories.
           fuzz_data=$(
             find . -name "*.go" -type f -exec grep -H "func Fuzz" {} \; \
-              | sed 's|^\./||' \
               | while read line; do
                   file=$(echo "$line" | cut -d: -f1)
                   func=$(echo "$line" | cut -d: -f2 | sed 's/func \([^(]*\).*/\1/')
                   dir=$(dirname "$file")
-                  printf '{"function":"%s","directory":"./%s"},' "$func" "$dir"
+                  printf '{"function":"%s","directory":"%s"},' "$func" "$dir"
                 done
           )
           elems="[${fuzz_data%,}]" # trim trailing comma
@@ -51,4 +50,4 @@ jobs:
         uses: ./.github/actions/go_setup
 
       - name: Run ${{ matrix.fuzz.function }}
-        run: go test -fuzztime 15s -fuzz=${{ matrix.fuzz.function }} ${{ matrix.fuzz.directory }}
+        run: go test -fuzztime 25s -fuzz=${{ matrix.fuzz.function }} ${{ matrix.fuzz.directory }}
