@@ -33,10 +33,10 @@ func (t *Tracer) Start(ctx context.Context, name string, opts ...SpanStartOption
 	}
 
 	span := Span{
-		name:   name,
-		tracer: t,
-		start:  cfg.startTime,
-		end:    new(epoch.Nanos),
+		name:      name,
+		tracer:    t,
+		start:     cfg.startTime,
+		lifecycle: newLifecycle(),
 	}
 
 	return ctx, span
