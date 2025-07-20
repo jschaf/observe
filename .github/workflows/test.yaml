@@ -37,6 +37,7 @@ jobs:
           echo "targets=$elems" >> $GITHUB_OUTPUT
 
   fuzz:
+    name: ${{ matrix.fuzz.function }}
     needs: discover-fuzz
     runs-on: ubuntu-latest
     strategy:
