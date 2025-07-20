@@ -22,7 +22,7 @@ esac
 archive_url="https://go.dev/dl/go${version}.${platform}-${arch}.tar.gz"
 echo "Downloading from: $archive_url"
 curl --fail --silent --show-error --location --write-out "%{stderr}Downloaded in %{time_total} seconds\n" "$archive_url" \
-  | tar -xz --strip-components=1 -C "$go_bin" go/bin/go
+  | tar -xz --strip-components=2 -C "$go_bin" go/bin/go
 
 export PATH="$PATH:$go_bin"
 go version

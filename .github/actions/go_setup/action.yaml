@@ -3,6 +3,21 @@ description: Setup Go for testing and compilation.
 runs:
   using: composite
   steps:
+    - name: Date Week Number
+      id: date-week-number
+      run: |
+        date -u "+%U" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Go build cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+        key: ${{ runner.os }}-${{ runner.arch }}-go-build-${{ hashFiles('go.mod') }}-week-${{ steps.get-date.outputs.date }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
     - name: setup Go
       shell: bash
-      run: ${GITHUB_WORKSPACE}/.github/actions/go_setup/go.sh
+      run: ${GITHUB_ACTION}/go.sh
