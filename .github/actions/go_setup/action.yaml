@@ -20,4 +20,4 @@ runs:
     
     - name: setup Go
       shell: bash
-      run: ${GITHUB_ACTION}/go.sh
+      run: ${GITHUB_WORKSPACE}/.github/actions/go_setup/go.sh
