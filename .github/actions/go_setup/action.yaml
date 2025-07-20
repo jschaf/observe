@@ -1,0 +1,8 @@
+name: Go Setup
+description: Setup Go for testing and compilation.
+runs:
+  using: composite
+  steps:
+    - name: setup Go
+      shell: bash
+      run: ${GITHUB_WORKSPACE}/.github/actions/go_setup/go.sh
