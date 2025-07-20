@@ -12,8 +12,37 @@ jobs:
 
       - run: go test -race ./...
 
-  fuzz:
+  discover-fuzz:
     runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.find-fuzz.outputs.targets }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find fuzz functions
+        id: find-fuzz
+        run: |
+          # Find all fuzz functions and their directories.
+          fuzz_data=$(
+            find . -name "*.go" -type f -exec grep -H "func Fuzz" {} \; \
+              | sed 's|^\./||' \
+              | while read line; do
+                  file=$(echo "$line" | cut -d: -f1)
+                  func=$(echo "$line" | cut -d: -f2 | sed 's/func \([^(]*\).*/\1/')
+                  dir=$(dirname "$file")
+                  echo "{\"function\":\"$func\",\"directory\":\"./$dir\"},"
+                done
+          )
+          elems="[${fuzz_data%,}]" # trim trailing comma
+          echo "targets=$elems" >> $GITHUB_OUTPUT
+
+  fuzz:
+    needs: discover-fuzz
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        fuzz: ${{ fromJSON(needs.discover-fuzz.outputs.targets) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,8 +50,5 @@ jobs:
       - name: Setup Go
         uses: ./.github/actions/go_setup
 
-      - name: FuzzLifecycle
-        run: go test -fuzztime 15s -fuzz=FuzzLifecycle ./trace
-
-      - name: FuzzParseState
-        run: go test -fuzztime 15s -fuzz=FuzzParseState ./trace
+      - name: Run ${{ matrix.fuzz.function }}
+        run: go test -fuzztime 15s -fuzz=${{ matrix.fuzz.function }} ${{ matrix.fuzz.directory }}
